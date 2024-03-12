@@ -19,6 +19,74 @@ export type BaseColumn<
   list: TList;
 };
 
+type _ScalarColumn<
+  scalar extends Scalar = Scalar,
+  optional extends boolean = boolean,
+  list extends boolean = boolean,
+> = {
+  _type: "s";
+  type: scalar;
+  optional: optional;
+  list: list;
+};
+
+type _IdColumn<id extends ID = ID> = _ScalarColumn<id, false, false>;
+
+type _ReferenceColumn<
+  scalar extends Scalar = Scalar,
+  optional extends boolean = boolean,
+  list extends boolean = boolean,
+  reference extends string = string,
+> = {
+  _type: "r";
+  type: scalar;
+  optional: optional;
+  list: list;
+  reference: reference;
+};
+
+type _OneColumn<reference extends string = string> = {
+  _type: "o";
+  reference: reference;
+};
+
+type _ManyColumn<
+  referenceTable extends string = string,
+  referenceColumn extends string = string,
+> = {
+  _type: "m";
+  referenceTable: referenceTable;
+  referenceColumn: referenceColumn;
+};
+
+type _EnumColumn<
+  type extends string = string,
+  optional extends boolean = boolean,
+  list extends boolean = boolean,
+> = {
+  _type: "e";
+  type: type;
+  optional: optional;
+  list: list;
+};
+
+export type _Column =
+  | _ScalarColumn
+  | _ReferenceColumn
+  | _OneColumn
+  | _ManyColumn
+  | _EnumColumn;
+
+export type _Table = { id: { " column": _IdColumn } } & {
+  [columnName: string]: { " column": _Column };
+};
+
+export type _Enum = readonly string[];
+
+export type _Schema = { [tableName: string]: _Table } & {
+  [enumName: string]: _Enum;
+};
+
 export type ReferenceColumn<
   TType extends Scalar = Scalar,
   TReferences extends `${string}.id` = `${string}.id`,
