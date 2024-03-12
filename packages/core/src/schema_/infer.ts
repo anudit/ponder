@@ -1,3 +1,4 @@
+import type { Prettify } from "@/types/utils.js";
 import type { Hex } from "viem";
 import type {
   Column,
@@ -63,12 +64,14 @@ export type FilterRequiredColumns<
   }[keyof columns]
 >;
 
-export type InferTableType<table extends Table> = {
-  [columnName in keyof FilterRequiredColumns<table>]: InferColumnType<
-    table[columnName]
-  >;
-} & {
-  [columnName in keyof FilterOptionalColumns<table>]?: InferColumnType<
-    table[columnName]
-  >;
-};
+export type InferTableType<table extends Table> = Prettify<
+  {
+    [columnName in keyof FilterRequiredColumns<table>]: InferColumnType<
+      table[columnName]
+    >;
+  } & {
+    [columnName in keyof FilterOptionalColumns<table>]?: InferColumnType<
+      table[columnName]
+    >;
+  }
+>;

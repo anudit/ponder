@@ -18,13 +18,11 @@ export type IdColumn<id extends ID = ID> = ScalarColumn<id, false, false>;
 export type ReferenceColumn<
   scalar extends Scalar = Scalar,
   optional extends boolean = boolean,
-  list extends boolean = boolean,
   reference extends string = string,
 > = {
   _type: "r";
   type: scalar;
   optional: optional;
-  list: list;
   reference: reference;
 };
 
@@ -62,13 +60,6 @@ export type Column =
 
 export type Table = { id: IdColumn } & {
   [columnName: string]: Column;
-};
-
-/**
- * Table type used in the schema builder pattern.
- */
-export type BuilderTable = {
-  [columnName in keyof Table]: { " column": Table[columnName] };
 };
 
 export type Enum = readonly string[];
