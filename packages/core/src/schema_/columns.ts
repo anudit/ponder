@@ -1,7 +1,9 @@
 import type { Prettify } from "@/types/utils.js";
 import type {
+  Enum,
   ID,
   IdColumn,
+  IsTable,
   ReferenceColumn,
   Scalar,
   ScalarColumn,
@@ -169,16 +171,21 @@ export type BuilderReferenceColumn<
 /**
  * Table type used in the schema builder pattern.
  */
-
 export type BuilderTable = {
   [columnName in keyof Table]: { " column": Table[columnName] };
 };
+
+export type BuilderSchema = { [tableName: string]: BuilderTable };
 
 export type RemoveBuilderColumn<column extends BuilderScalarColumn> =
   column[" column"];
 
 export type RemoveBuilderTable<table extends BuilderTable> = {
   [columnName in keyof table]: table[columnName][" column"];
+};
+
+export type RemoveBuilderSchema<schema extends BuilderSchema> = {
+  [entityName in keyof schema]: RemoveBuilderTable<schema[entityName]>;
 };
 
 export const string = scalarColumn("string");

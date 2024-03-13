@@ -6,6 +6,7 @@ import type {
   ReferenceColumn,
   Scalar,
   ScalarColumn,
+  Schema,
   Table,
 } from "./common.js";
 
@@ -75,3 +76,7 @@ export type InferTableType<table extends Table> = Prettify<
     >;
   }
 >;
+
+export type InferSchemaType<schema extends Schema> = {
+  [tableName in keyof schema]: InferTableType<schema[tableName]>;
+};

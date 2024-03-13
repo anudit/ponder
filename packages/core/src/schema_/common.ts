@@ -1,5 +1,4 @@
 export type Scalar = "string" | "int" | "float" | "boolean" | "hex" | "bigint";
-
 export type ID = "string" | "int" | "bigint" | "hex";
 
 export type ScalarColumn<
@@ -64,6 +63,8 @@ export type Table = { id: IdColumn } & {
 
 export type Enum = readonly string[];
 
-export type Schema = { [tableName: string]: Table } & {
-  [enumName: string]: Enum;
-};
+export type IsTable<a extends Table | Enum> = a extends readonly unknown[]
+  ? false
+  : true;
+
+export type Schema = { [tableName: string]: Table };

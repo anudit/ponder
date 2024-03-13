@@ -1,5 +1,8 @@
 import {
+  type BuilderIdColumn,
+  type BuilderReferenceColumn,
   type BuilderScalarColumn,
+  type BuilderSchema,
   type BuilderTable,
   bigint,
   boolean,
@@ -8,15 +11,15 @@ import {
   int,
   string,
 } from "./columns.js";
-import type { IdColumn } from "./common.js";
-
-export type GetColumn<column> = column | BuilderScalarColumn;
+import type { Schema } from "./common.js";
 
 type GetTable<table> = {} extends table
   ? {}
-  : table extends { id: { " column": IdColumn } }
+  : table extends BuilderIdColumn
     ? {
-        [columnName in keyof table]: BuilderScalarColumn;
+        [columnName in keyof table]:
+          | BuilderScalarColumn
+          | BuilderReferenceColumn;
       }
     : BuilderTable;
 
@@ -34,7 +37,8 @@ const P = {
 };
 
 type P = {
-  // createTable
+  // a?: tableNames;
+  createTable: <const table>(t: GetTable<table>) => table;
   string: () => BuilderScalarColumn<"string", false, false>;
   bigint: () => BuilderScalarColumn<"bigint", false, false>;
   int: () => BuilderScalarColumn<"int", false, false>;
@@ -45,12 +49,12 @@ type P = {
 
 type GetSchema<schema> = {} extends schema
   ? {}
-  : { [tableName in keyof schema]: GetTable<schema[tableName]> };
+  : schema extends ((p: unknown) => infer _schema extends object)
+    ? (p: P) => _schema | object
+    : (p: P) => object;
 
 export const createSchema = <const schema>(
-  _schema: (p: P) => GetSchema<schema>,
-) => {
-  const builtSchema = _schema(P);
-
-  return builtSchema;
+  _schema: GetSchema<schema>,
+): schema => {
+  return schema();
 };
