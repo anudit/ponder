@@ -28,13 +28,12 @@ type GetTable<table> = {} extends table
             : table[columnName] extends BuilderOneColumn
               ? BuilderOneColumn<
                   Exclude<keyof table & string, columnName | "id">
-                >
+                > & { y?: "why" }
               : BuilderScalarColumn | BuilderReferenceColumn | BuilderOneColumn;
       }
     : BuilderTable;
 
-export const createTable = <const table>(t: GetTable<table>): table =>
-  t as table;
+export const createTable = <const table>(t: table): table => t as table;
 
 const P = {
   createTable,
@@ -48,7 +47,8 @@ const P = {
 };
 
 type P = {
-  createTable: <const table>(t: GetTable<table>) => table;
+  /** @deprecated Identify function limits type inference. */
+  createTable: <const table>(t: table) => table;
   string: () => BuilderScalarColumn<"string", false, false>;
   bigint: () => BuilderScalarColumn<"bigint", false, false>;
   int: () => BuilderScalarColumn<"int", false, false>;
@@ -63,7 +63,11 @@ type P = {
 type CreateSchemaParameters<schema> = {} extends schema
   ? {}
   : schema extends { (p: P): infer _schema extends BuilderSchema }
-    ? { (p: P): _schema } | { (p: P): BuilderSchema }
+    ? {
+        (p: P): {
+          [tableName in keyof _schema]: GetTable<_schema[tableName]>;
+        };
+      }
     : { (p: P): BuilderSchema };
 
 type CreateSchemaReturnType<schema> = schema extends {

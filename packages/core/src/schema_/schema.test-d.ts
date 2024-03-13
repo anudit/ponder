@@ -1,27 +1,10 @@
 import type { Hex } from "viem";
 import { assertType, test } from "vitest";
-import { type RemoveBuilderTable, hex, int, string } from "./columns.js";
-import type { InferSchemaType, InferTableType } from "./infer.js";
-import { createSchema, createTable } from "./schema.js";
-
-test("createTable scalar", () => {
-  const table = createTable({
-    //  ^?
-    id: hex(),
-    col: string().optional(),
-    col1: int().list(),
-  });
-
-  type inferred = InferTableType<RemoveBuilderTable<typeof table>>;
-  //   ^?
-
-  assertType<inferred>(
-    {} as unknown as { id: Hex; col: string; col1: number[] },
-  );
-});
+import type { InferSchemaType } from "./infer.js";
+import { createSchema } from "./schema.js";
 
 test("createSchema scalar", () => {
-  const schema = createSchema((p) => ({ t: p.createTable({ id: p.hex() }) }));
+  const schema = createSchema((p) => ({ t: { id: p.hex() } }));
   //    ^?
 
   type inferred = InferSchemaType<typeof schema>;
@@ -33,13 +16,13 @@ test("createSchema scalar", () => {
 test("createSchema reference", () => {
   const schema = createSchema((p) => ({
     //  ^?
-    t1: p.createTable({
+    t1: {
       id: p.hex(),
-    }),
-    t2: p.createTable({
+    },
+    t2: {
       id: p.hex(),
       col: p.hex().references("t1.id"),
-    }),
+    },
   }));
 
   type inferred = InferSchemaType<typeof schema>;
@@ -53,14 +36,14 @@ test("createSchema reference", () => {
 test("createSchema one", () => {
   const schema = createSchema((p) => ({
     //  ^?
-    t1: p.createTable({
+    t1: {
       id: p.hex(),
-    }),
-    t2: p.createTable({
+    },
+    t2: {
       id: p.hex(),
       col1: p.hex().references("t1.id"),
       col2: p.one("col1"),
-    }),
+    },
   }));
 
   type inferred = InferSchemaType<typeof schema>;
