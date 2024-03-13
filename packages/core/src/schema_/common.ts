@@ -6,10 +6,10 @@ export type ScalarColumn<
   optional extends boolean = boolean,
   list extends boolean = boolean,
 > = {
-  type: "scalar";
-  scalar: scalar;
-  optional: optional;
-  list: list;
+  " type": "scalar";
+  " scalar": scalar;
+  " optional": optional;
+  " list": list;
 };
 
 export type IdColumn<id extends ID = ID> = ScalarColumn<id, false, false>;
@@ -19,24 +19,24 @@ export type ReferenceColumn<
   optional extends boolean = boolean,
   reference extends string = string,
 > = {
-  type: "reference";
-  scalar: scalar;
-  optional: optional;
-  reference: reference;
+  " type": "reference";
+  " scalar": scalar;
+  " optional": optional;
+  " reference": reference;
 };
 
 export type OneColumn<reference extends string = string> = {
-  type: "one";
-  reference: reference;
+  " type": "one";
+  " reference": reference;
 };
 
 export type ManyColumn<
   referenceTable extends string = string,
   referenceColumn extends string = string,
 > = {
-  type: "m";
-  referenceTable: referenceTable;
-  referenceColumn: referenceColumn;
+  " type": "m";
+  " referenceTable": referenceTable;
+  " referenceColumn": referenceColumn;
 };
 
 export type EnumColumn<
@@ -44,10 +44,10 @@ export type EnumColumn<
   optional extends boolean = boolean,
   list extends boolean = boolean,
 > = {
-  type: "enum";
-  enum: _enum;
-  optional: optional;
-  list: list;
+  " type": "enum";
+  " enum": _enum;
+  " optional": optional;
+  " list": list;
 };
 
 export type Column =
