@@ -6,8 +6,8 @@ export type ScalarColumn<
   optional extends boolean = boolean,
   list extends boolean = boolean,
 > = {
-  _type: "s";
-  type: scalar;
+  type: "scalar";
+  scalar: scalar;
   optional: optional;
   list: list;
 };
@@ -19,14 +19,14 @@ export type ReferenceColumn<
   optional extends boolean = boolean,
   reference extends string = string,
 > = {
-  _type: "r";
-  type: scalar;
+  type: "reference";
+  scalar: scalar;
   optional: optional;
   reference: reference;
 };
 
 export type OneColumn<reference extends string = string> = {
-  _type: "o";
+  type: "one";
   reference: reference;
 };
 
@@ -34,18 +34,18 @@ export type ManyColumn<
   referenceTable extends string = string,
   referenceColumn extends string = string,
 > = {
-  _type: "m";
+  type: "m";
   referenceTable: referenceTable;
   referenceColumn: referenceColumn;
 };
 
 export type EnumColumn<
-  type extends string = string,
+  _enum extends string = string,
   optional extends boolean = boolean,
   list extends boolean = boolean,
 > = {
-  _type: "e";
-  type: type;
+  type: "enum";
+  enum: _enum;
   optional: optional;
   list: list;
 };

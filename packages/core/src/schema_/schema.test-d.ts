@@ -4,7 +4,7 @@ import type { InferSchemaType } from "./infer.js";
 import { createSchema } from "./schema.js";
 
 test("createSchema scalar", () => {
-  const schema = createSchema((p) => ({ t: { id: p.hex() } }));
+  const schema = createSchema((p) => ({ t: p.createTable({ id: p.hex() }) }));
   //    ^?
 
   type inferred = InferSchemaType<typeof schema>;
@@ -16,13 +16,13 @@ test("createSchema scalar", () => {
 test("createSchema reference", () => {
   const schema = createSchema((p) => ({
     //  ^?
-    t1: {
+    t1: p.createTable({
       id: p.hex(),
-    },
-    t2: {
+    }),
+    t2: p.createTable({
       id: p.hex(),
       col: p.hex().references("t1.id"),
-    },
+    }),
   }));
 
   type inferred = InferSchemaType<typeof schema>;
@@ -33,17 +33,27 @@ test("createSchema reference", () => {
   );
 });
 
+test("createSchema reference error", () => {
+  createSchema((p) => ({
+    // @ts-expect-error
+    t: p.createTable({
+      id: p.hex(),
+      col: p.hex().references("t.id"),
+    }),
+  }));
+});
+
 test("createSchema one", () => {
   const schema = createSchema((p) => ({
     //  ^?
-    t1: {
+    t1: p.createTable({
       id: p.hex(),
-    },
-    t2: {
+    }),
+    t2: p.createTable({
       id: p.hex(),
       col1: p.hex().references("t1.id"),
       col2: p.one("col1"),
-    },
+    }),
   }));
 
   type inferred = InferSchemaType<typeof schema>;
@@ -52,4 +62,16 @@ test("createSchema one", () => {
   assertType<inferred>(
     {} as unknown as { t1: { id: Hex }; t2: { id: Hex; col1: Hex } },
   );
+});
+
+test("createSchema one error", () => {
+  createSchema((p) => ({
+    //  ^?
+    // @ts-expect-error
+    t: p.createTable({
+      id: p.hex(),
+      // @ts-expect-error
+      col: p.one("col"),
+    }),
+  }));
 });

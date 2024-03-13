@@ -1,12 +1,7 @@
-import type { Prettify } from "@/types/utils.js";
 import {
-  type BuilderIdColumn,
   type BuilderOneColumn,
   type BuilderReferenceColumn,
   type BuilderScalarColumn,
-  type BuilderSchema,
-  type BuilderTable,
-  type RemoveBuilderSchema,
   bigint,
   boolean,
   float,
@@ -15,27 +10,45 @@ import {
   one,
   string,
 } from "./columns.js";
-import type { Scalar, Schema } from "./common.js";
+import type {
+  IdColumn,
+  OneColumn,
+  ReferenceColumn,
+  ScalarColumn,
+} from "./common.js";
 
 type GetTable<
   table,
-  tableName,
-  schema,
+  tableName = string,
+  schema = {},
   ///
-  tableNames extends string = Exclude<keyof schema & string, tableName>,
-> = table extends { id: BuilderIdColumn }
-  ? {
-      [columnName in keyof table]: table[columnName] extends BuilderScalarColumn
-        ? BuilderScalarColumn
-        : table[columnName] extends BuilderReferenceColumn
-          ? BuilderReferenceColumn<Scalar, boolean, `${tableNames}.id`>
-          : table[columnName] extends BuilderOneColumn
-            ? BuilderOneColumn<Exclude<keyof table & string, columnName | "id">>
-            : BuilderScalarColumn | BuilderReferenceColumn | BuilderOneColumn;
-    }
-  : BuilderTable;
+  tableNames extends string = {} extends schema
+    ? string
+    : Exclude<keyof schema & string, tableName>,
+> = {} extends table
+  ? {}
+  : table extends {
+        id: IdColumn;
+      }
+    ? {
+        [columnName in keyof table]: table[columnName] extends ScalarColumn
+          ? ScalarColumn
+          : table[columnName] extends ReferenceColumn
+            ? ReferenceColumn<
+                table[columnName][" scalar"],
+                table[columnName][" optional"],
+                `${tableNames}.id`
+              >
+            : table[columnName] extends OneColumn
+              ? OneColumn<Exclude<keyof table & string, columnName | "id">>
+              : ScalarColumn | ReferenceColumn | OneColumn;
+      }
+    : { id: IdColumn } & {
+        [columnName: string]: ScalarColumn | ReferenceColumn | OneColumn;
+      };
 
-export const createTable = <const table>(t: table): table => t as table;
+export const createTable = <const table>(t: GetTable<table>): table =>
+  t as table;
 
 const P = {
   createTable,
@@ -49,8 +62,7 @@ const P = {
 };
 
 type P = {
-  /** @deprecated Identify function limits type inference. */
-  createTable: <const table>(t: table) => table;
+  createTable: <const table>(t: GetTable<table>) => table;
   string: () => BuilderScalarColumn<"string", false, false>;
   bigint: () => BuilderScalarColumn<"bigint", false, false>;
   int: () => BuilderScalarColumn<"int", false, false>;
@@ -64,26 +76,16 @@ type P = {
 
 type CreateSchemaParameters<schema> = {} extends schema
   ? {}
-  : schema extends { (p: P): infer _schema extends BuilderSchema }
-    ? {
-        (p: P): {
-          [tableName in keyof _schema]: GetTable<
-            _schema[tableName],
-            tableName,
-            _schema
-          >;
-        };
-      }
-    : { (p: P): BuilderSchema };
-
-type CreateSchemaReturnType<schema> = schema extends {
-  (p: P): infer _schema extends BuilderSchema;
-}
-  ? Prettify<RemoveBuilderSchema<_schema>>
-  : Schema;
+  : {
+      [tableName in keyof schema]: GetTable<
+        schema[tableName],
+        tableName,
+        schema
+      >;
+    };
 
 export const createSchema = <const schema>(
-  _schema: CreateSchemaParameters<schema>,
-): CreateSchemaReturnType<schema> => {
-  return (_schema as { (p: P): CreateSchemaReturnType<schema> })(P);
+  _schema: (p: P) => CreateSchemaParameters<schema>,
+): schema => {
+  return _schema(P) as schema;
 };

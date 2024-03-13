@@ -25,11 +25,11 @@ export type InferScalarType<scalar extends Scalar> = scalar extends "string"
             : never;
 
 export type InferColumnType<column extends Column> = column extends ScalarColumn
-  ? column["list"] extends true
-    ? InferScalarType<column["type"]>[]
-    : InferScalarType<column["type"]>
+  ? column[" list"] extends true
+    ? InferScalarType<column[" scalar"]>[]
+    : InferScalarType<column[" scalar"]>
   : column extends ReferenceColumn
-    ? InferScalarType<column["type"]>
+    ? InferScalarType<column[" scalar"]>
     : never;
 
 export type FilterOptionalColumns<
@@ -41,7 +41,7 @@ export type FilterOptionalColumns<
       | ScalarColumn
       | ReferenceColumn
       | EnumColumn
-      ? columns[columnName]["optional"] extends true
+      ? columns[columnName][" optional"] extends true
         ? columnName
         : never
       : never;
@@ -57,7 +57,7 @@ export type FilterRequiredColumns<
       | ScalarColumn
       | ReferenceColumn
       | EnumColumn
-      ? columns[columnName]["optional"] extends false
+      ? columns[columnName][" optional"] extends false
         ? columnName
         : never
       : never;
