@@ -24,14 +24,13 @@ export type InferScalarType<scalar extends Scalar> = scalar extends "string"
             ? bigint
             : never;
 
-export type InferColumnType<column extends Column> = column extends {
-  type: infer type extends Scalar;
-  list: infer list extends boolean;
-}
-  ? list extends true
-    ? InferScalarType<type>[]
-    : InferScalarType<type>
-  : never;
+export type InferColumnType<column extends Column> = column extends ScalarColumn
+  ? column["list"] extends true
+    ? InferScalarType<column["type"]>[]
+    : InferScalarType<column["type"]>
+  : column extends ReferenceColumn
+    ? InferScalarType<column["type"]>
+    : never;
 
 export type FilterOptionalColumns<
   columns extends { [columnsName: string]: Column },

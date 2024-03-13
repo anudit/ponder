@@ -1,12 +1,6 @@
 import type { Hex } from "viem";
 import { assertType, test } from "vitest";
-import {
-  type RemoveBuilderSchema,
-  type RemoveBuilderTable,
-  hex,
-  int,
-  string,
-} from "./columns.js";
+import { type RemoveBuilderTable, hex, int, string } from "./columns.js";
 import type { InferSchemaType, InferTableType } from "./infer.js";
 import { createSchema, createTable } from "./schema.js";
 
@@ -27,10 +21,10 @@ test("createTable scalar", () => {
 });
 
 test("createSchema scalar", () => {
-  const schema = createSchema((_p) => ({ a: "a" }) as const);
+  const schema = createSchema((p) => ({ t: p.createTable({ id: p.hex() }) }));
   //    ^?
 
-  type inferred = InferSchemaType<RemoveBuilderSchema<typeof schema>>;
+  type inferred = InferSchemaType<typeof schema>;
   //   ^?
 
   assertType<inferred>({} as unknown as { t: { id: Hex } });
@@ -48,7 +42,7 @@ test("createSchema reference", () => {
     }),
   }));
 
-  type inferred = InferSchemaType<RemoveBuilderSchema<typeof schema>>;
+  type inferred = InferSchemaType<typeof schema>;
   //   ^?
 
   assertType<inferred>(

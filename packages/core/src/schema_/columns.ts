@@ -1,9 +1,7 @@
 import type { Prettify } from "@/types/utils.js";
 import type {
-  Enum,
   ID,
   IdColumn,
-  IsTable,
   ReferenceColumn,
   Scalar,
   ScalarColumn,
@@ -185,7 +183,9 @@ export type RemoveBuilderTable<table extends BuilderTable> = {
 };
 
 export type RemoveBuilderSchema<schema extends BuilderSchema> = {
-  [entityName in keyof schema]: RemoveBuilderTable<schema[entityName]>;
+  [entityName in keyof schema]: Prettify<
+    RemoveBuilderTable<schema[entityName]>
+  >;
 };
 
 export const string = scalarColumn("string");
