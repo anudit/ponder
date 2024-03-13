@@ -15,23 +15,25 @@ import {
   one,
   string,
 } from "./columns.js";
-import type { Schema } from "./common.js";
+import type { Scalar, Schema } from "./common.js";
 
-type GetTable<table> = {} extends table
-  ? {}
-  : table extends { id: BuilderIdColumn }
-    ? {
-        [columnName in keyof table]: table[columnName] extends BuilderScalarColumn
-          ? BuilderScalarColumn
-          : table[columnName] extends BuilderReferenceColumn
-            ? BuilderReferenceColumn
-            : table[columnName] extends BuilderOneColumn
-              ? BuilderOneColumn<
-                  Exclude<keyof table & string, columnName | "id">
-                > & { y?: "why" }
-              : BuilderScalarColumn | BuilderReferenceColumn | BuilderOneColumn;
-      }
-    : BuilderTable;
+type GetTable<
+  table,
+  tableName,
+  schema,
+  ///
+  tableNames extends string = Exclude<keyof schema & string, tableName>,
+> = table extends { id: BuilderIdColumn }
+  ? {
+      [columnName in keyof table]: table[columnName] extends BuilderScalarColumn
+        ? BuilderScalarColumn
+        : table[columnName] extends BuilderReferenceColumn
+          ? BuilderReferenceColumn<Scalar, boolean, `${tableNames}.id`>
+          : table[columnName] extends BuilderOneColumn
+            ? BuilderOneColumn<Exclude<keyof table & string, columnName | "id">>
+            : BuilderScalarColumn | BuilderReferenceColumn | BuilderOneColumn;
+    }
+  : BuilderTable;
 
 export const createTable = <const table>(t: table): table => t as table;
 
@@ -65,7 +67,11 @@ type CreateSchemaParameters<schema> = {} extends schema
   : schema extends { (p: P): infer _schema extends BuilderSchema }
     ? {
         (p: P): {
-          [tableName in keyof _schema]: GetTable<_schema[tableName]>;
+          [tableName in keyof _schema]: GetTable<
+            _schema[tableName],
+            tableName,
+            _schema
+          >;
         };
       }
     : { (p: P): BuilderSchema };
