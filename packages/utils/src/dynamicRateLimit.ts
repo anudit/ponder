@@ -40,9 +40,10 @@ export const dynamicRateLimit = (
 
         if (Math.floor(_timestamp / 1_000) !== timestamp) {
           if (rangeHas429) {
-            requestsPerSecond /= 2;
+            // Note: do not want requests per second < 1
+            requestsPerSecond = requests / 2;
           } else {
-            requestsPerSecond *= 1.25;
+            requestsPerSecond *= Math.max(requestsPerSecond, requests * 1.25);
           }
 
           queue.setParameters({
@@ -64,6 +65,7 @@ export const dynamicRateLimit = (
 
           if (error.code === 429) {
             rangeHas429 = true;
+            // Note: should we retry the request automatically
           }
 
           throw error;
@@ -74,8 +76,8 @@ export const dynamicRateLimit = (
     return createTransport({
       key: "dynamicRateLimit",
       name: "Dynamic Rate Limit",
-      request: (body) => {
-        return queue.add(body);
+      request: async (body) => {
+        return await queue.add(body);
       },
       retryCount,
       type: "dynamicRateLimit",
