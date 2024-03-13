@@ -2,6 +2,7 @@ import type { Prettify } from "@/types/utils.js";
 import type {
   ID,
   IdColumn,
+  OneColumn,
   ReferenceColumn,
   Scalar,
   ScalarColumn,
@@ -166,6 +167,10 @@ export type BuilderReferenceColumn<
       " column": col;
     };
 
+export type BuilderOneColumn<reference extends string = string> = {
+  " column": OneColumn<reference>;
+};
+
 /**
  * Table type used in the schema builder pattern.
  */
@@ -194,3 +199,9 @@ export const float = scalarColumn("float");
 export const boolean = scalarColumn("boolean");
 export const hex = scalarColumn("hex");
 export const bigint = scalarColumn("bigint");
+
+export const one = <reference extends string>(
+  ref: reference,
+): BuilderOneColumn<reference> => ({
+  " column": { _type: "o", reference: ref },
+});

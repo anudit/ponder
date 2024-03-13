@@ -49,3 +49,24 @@ test("createSchema reference", () => {
     {} as unknown as { t1: { id: Hex }; t2: { id: Hex; col: Hex } },
   );
 });
+
+test("createSchema one", () => {
+  const schema = createSchema((p) => ({
+    //  ^?
+    t1: p.createTable({
+      id: p.hex(),
+    }),
+    t2: p.createTable({
+      id: p.hex(),
+      col1: p.hex().references("t1.id"),
+      col2: p.one("col1"),
+    }),
+  }));
+
+  type inferred = InferSchemaType<typeof schema>;
+  //   ^?
+
+  assertType<inferred>(
+    {} as unknown as { t1: { id: Hex }; t2: { id: Hex; col1: Hex } },
+  );
+});

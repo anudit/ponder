@@ -1,6 +1,7 @@
 import type { Prettify } from "@/types/utils.js";
 import {
   type BuilderIdColumn,
+  type BuilderOneColumn,
   type BuilderReferenceColumn,
   type BuilderScalarColumn,
   type BuilderSchema,
@@ -11,17 +12,24 @@ import {
   float,
   hex,
   int,
+  one,
   string,
 } from "./columns.js";
 import type { Schema } from "./common.js";
 
 type GetTable<table> = {} extends table
   ? {}
-  : table extends BuilderIdColumn
+  : table extends { id: BuilderIdColumn }
     ? {
-        [columnName in keyof table]:
-          | BuilderScalarColumn
-          | BuilderReferenceColumn;
+        [columnName in keyof table]: table[columnName] extends BuilderScalarColumn
+          ? BuilderScalarColumn
+          : table[columnName] extends BuilderReferenceColumn
+            ? BuilderReferenceColumn
+            : table[columnName] extends BuilderOneColumn
+              ? BuilderOneColumn<
+                  Exclude<keyof table & string, columnName | "id">
+                >
+              : BuilderScalarColumn | BuilderReferenceColumn | BuilderOneColumn;
       }
     : BuilderTable;
 
@@ -36,6 +44,7 @@ const P = {
   float,
   hex,
   boolean,
+  one,
 };
 
 type P = {
@@ -46,6 +55,9 @@ type P = {
   float: () => BuilderScalarColumn<"float", false, false>;
   hex: () => BuilderScalarColumn<"hex", false, false>;
   boolean: () => BuilderScalarColumn<"boolean", false, false>;
+  one: <reference extends string>(
+    ref: reference,
+  ) => BuilderOneColumn<reference>;
 };
 
 type CreateSchemaParameters<schema> = {} extends schema
