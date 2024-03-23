@@ -461,24 +461,25 @@ export class RealtimeSyncService extends Emittery<RealtimeSyncEvents> {
     const criteria = this.sources.map((s) => s.criteria);
 
     // Don't attempt to skip "eth_getLogs" if a factory source is present.
-    const canSkipGetLogs =
-      !this.hasFactorySource &&
-      newBlocks.every(
+    const shouldGetLogs =
+      this.hasFactorySource ||
+      newBlocks.some(
         (block) =>
-          !isMatchedLogInBloomFilter({
+          block.logsBloom === zeroLogsBloom ||
+          isMatchedLogInBloomFilter({
             bloom: block.logsBloom,
             logFilters: criteria,
-          }) && block.logsBloom !== zeroLogsBloom,
+          }),
       );
 
-    if (canSkipGetLogs) {
+    if (shouldGetLogs === false) {
       this.common.logger.debug({
         service: "realtime",
         msg: `Skipping eth_getLogs call because of logs bloom filter result (network=${this.network.name}`,
       });
-    }
 
-    if (canSkipGetLogs) return { blocks: newBlocks, logs: [], reorg: false };
+      return { blocks: newBlocks, logs: [], reorg: false };
+    }
 
     this.common.logger.trace({
       service: "realtime",
