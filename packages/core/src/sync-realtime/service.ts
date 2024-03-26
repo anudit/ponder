@@ -770,6 +770,30 @@ export class RealtimeSyncService extends Emittery<RealtimeSyncEvents> {
     logs,
     blocks,
   }: { logs: RealtimeLog[]; blocks: RealtimeBlock[] }) => {
+    // verify integrity before inserting
+    for (const log of logs) {
+      const block = blocks.find((b) => b.hash === log.blockHash);
+
+      if (block === undefined || log.blockNumber !== block.number) {
+        throw new Error(
+          `Local block ${log.blockNumber} is missing or invalid.`,
+        );
+      }
+
+      const transaction = block.transactions.find(
+        (t) => t.hash === log.transactionHash,
+      );
+
+      if (
+        transaction === undefined ||
+        log.transactionIndex !== transaction.transactionIndex
+      ) {
+        throw new Error(
+          `Local transaction ${log.transactionHash} is missing or invalid.`,
+        );
+      }
+    }
+
     for (const block of blocks) {
       const blockLogs = logs.filter((l) => l.blockNumber === block.number);
 
